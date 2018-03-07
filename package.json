@@ -1,12 +1,9 @@
 {
-  "name": "chatty",
-  "description": "A WhatsApp clone with React Native and Apollo",
+  "name": "server",
   "private": true,
   "version": "1.0.0",
   "main": "index.js",
-  "repository": "https://github.com/srtucker22/chatty.git",
-  "author": "Simon Tucker <srtucker22@gmail.com>",
-  "license": "MIT",
+  "repository": "https://github.com/vko-online/pp.git",
   "scripts": {
     "start": "nodemon --watch server --watch package.json --watch .env server/index.js --exec babel-node --presets es2015,stage-2"
   },

@@ -92,96 +92,69 @@ const DECISIONS = ['liked', 'disliked', 'skipped']
 
 faker.seed(123) // get consistent data every time we reload app
 
-db
-  .sync({ force: true })
-  .then(async () => {
-    const promiseUsers = await _.times(USERS, async () => {
-      const password = '1'
-      const hash = await bcrypt.hash(password, 10)
-      const user = await UserModel.create({
-        badgeCount: 0,
-        email: faker.internet.email(),
-        username: faker.internet.userName(),
-        password: hash,
-        version: 1,
-        gender: Math.random() > 0.5 ? 'male' : 'female',
-        location: 'Almaty',
-        age: Math.floor(Math.random() * 20 + 18),
-        status: _.sample(STATUSES)
-      })
-      console.log(`{${user.email}, ${password}}, ${user.username}}`)
-      return user
-    })
-    Promise.all(promiseUsers).then(users => {
-      users.forEach(user => {
-        const validOtherUsers = users.filter(v => {
-          const g = user.gender === 'male' ? 'female' : 'male'
-          return v.gender === g &&
-            v.location === user.location &&
-            v.status === user.status &&
-            v.id !== user.id
+if (process.env.REFRESH) {
+  db
+    .sync({ force: true })
+    .then(async () => {
+      const promiseUsers = await _.times(USERS, async () => {
+        const password = '1'
+        const hash = await bcrypt.hash(password, 10)
+        const user = await UserModel.create({
+          badgeCount: 0,
+          email: faker.internet.email(),
+          username: faker.internet.userName(),
+          password: hash,
+          version: 1,
+          gender: Math.random() > 0.5 ? 'male' : 'female',
+          location: 'Almaty',
+          age: Math.floor(Math.random() * 20 + 18),
+          status: _.sample(STATUSES)
         })
-        validOtherUsers.forEach(async person => {
-          const decision = await DecisionModel.create({
-            whoId: user.id,
-            whomId: person.id,
-            status: _.sample(DECISIONS)
+        console.log(`{${user.email}, ${password}}, ${user.username}}`)
+        return user
+      })
+      Promise.all(promiseUsers).then(users => {
+        users.forEach(user => {
+          const validOtherUsers = users.filter(v => {
+            const g = user.gender === 'male' ? 'female' : 'male'
+            return v.gender === g &&
+              v.location === user.location &&
+              v.status === user.status &&
+              v.id !== user.id
           })
-          if (decision.status === 'liked') {
-            const oldDecision = await Decision.findOne({
-              where: {
-                status: 'liked',
-                whomId: user.id,
-                whoId: person.id
-              }
+          validOtherUsers.forEach(async person => {
+            const decision = await DecisionModel.create({
+              whoId: user.id,
+              whomId: person.id,
+              status: _.sample(DECISIONS)
             })
-            if (oldDecision) {
+            if (decision.status === 'liked') {
+              const oldDecision = await Decision.findOne({
+                where: {
+                  status: 'liked',
+                  whomId: user.id,
+                  whoId: person.id
+                }
+              })
+              if (oldDecision) {
+                const match = await Match.create({
+                  status: 'liked'
+                })
+                await match.setUsers([user.id, person.id])
+              }
+            }
+            if (decision.status === 'disliked') {
+              // create disliked match
               const match = await Match.create({
-                status: 'liked'
+                status: 'disliked'
               })
               await match.setUsers([user.id, person.id])
             }
-          }
-          if (decision.status === 'disliked') {
-            // create disliked match
-            const match = await Match.create({
-              status: 'disliked'
-            })
-            await match.setUsers([user.id, person.id])
-          }
+          })
         })
       })
     })
-  })
-
-// db
-//   .sync({ force: true })
-//   .then(() => {
-//     _.times(USERS, () => {
-//       const password = faker.internet.password()
-//       return bcrypt.hash(password, 10).then(hash =>
-//         UserModel
-//           .create({
-//             badgeCount: 0,
-//             email: faker.internet.email(),
-//             username: faker.internet.userName(),
-//             password: hash,
-//             version: 1,
-//             gender: Math.random() > 0.5 ? 'male' : 'female',
-//             location: 'Almaty',
-//             age: Math.floor(Math.random() * 20 + 18),
-//             status: _.sample(STATUSES)
-//           })
-//           .then(user => {
-//             console.log(
-//               '{email, username, password}',
-//               `{${user.email}, ${user.username}, ${password}}`
-//             )
-//             return user
-//           })
-//       )
-//     })
-//   })
+}
 
 const Match = db.models.match
 const Message = db.models.message

@@ -1,4 +1,4 @@
-import { flatten, uniq, map, filter } from 'lodash'
+import { uniq, map, filter } from 'lodash'
 import uuidv4 from 'uuid/v4'
 import mime from 'mime-types'
 
@@ -79,34 +79,43 @@ export const decisionLogic = {
   async createDecision (_, createDecisionInput, ctx) {
     const { personId, status } = createDecisionInput.decision
     const user = await getAuthenticatedUser(ctx)
-    const decision = await Decision.create({
-      whoId: user.id,
-      whomId: personId,
-      status
+    const existingDecision = await Decision.findOne({
+      where: {
+        whoId: user.id,
+        whomId: personId
+      }
     })
-    if (status === 'liked') {
-      const oldDecision = await Decision.findOne({
-        where: {
-          whomId: user.id,
-          whoId: personId,
-          status: 'liked'
-        }
+    if (!existingDecision || existingDecision.status === 'skipped') {
+      const decision = await Decision.create({
+        whoId: user.id,
+        whomId: personId,
+        status
       })
-      if (oldDecision) {
-        // create match
+      if (status === 'liked') {
+        const oldDecision = await Decision.findOne({
+          where: {
+            whomId: user.id,
+            whoId: personId,
+            status: 'liked'
+          }
+        })
+        if (oldDecision) {
+          // create match
+          const match = await Match.create({
+            status: 'liked'
+          })
+          await match.setUsers([user.id, personId])
+        }
+      }
+      if (status === 'disliked') {
         const match = await Match.create({
-          status: 'liked'
+          status: 'disliked'
         })
         await match.setUsers([user.id, personId])
       }
+      return decision
     }
-    if (status === 'disliked') {
-      const match = await Match.create({
-        status: 'disliked'
-      })
-      await match.setUsers([user.id, personId])
-    }
-    return decision
+    return existingDecision
   }
 }
 
@@ -275,13 +284,14 @@ export const userLogic = {
   async all (_, args, ctx) {
     const user = await getAuthenticatedUser(ctx)
 
-    const matches = await user.getMatches({
+    const whoDecisions = await Decision.findAll({
       where: {
+        whoId: user.id,
         $or: [{status: 'liked'}, {status: 'disliked'}]
-      },
-      include: [User]
+      }
     })
-    const ids = uniq(flatten(map(matches, m => m.users.map(u => u.id))))
+    const allDecidedUsers = whoDecisions.map(v => v.whomId)
+    const ids = uniq(allDecidedUsers)
 
     return User.findAll({
       where: {
