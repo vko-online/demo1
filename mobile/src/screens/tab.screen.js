@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     flex: 1
   },
   tabbar: {
-    paddingTop: 20,
+    paddingTop: 30,
     position: 'absolute',
     top: 0,
     left: 0,

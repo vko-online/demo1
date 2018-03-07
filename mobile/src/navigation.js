@@ -1,11 +1,7 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import {
-  AppState,
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  Dimensions
+  AppState
 } from 'react-native'
 import {
   addNavigationHelpers,
@@ -19,15 +15,9 @@ import { map } from 'lodash'
 import { Buffer } from 'buffer'
 import { REHYDRATE } from 'redux-persist/constants'
 import { Notifications } from 'expo'
-import { Ionicons } from '@expo/vector-icons'
-
-import { Text } from './components/text.component'
 
 import Signin from './screens/signin.screen'
 
-import Connection from './screens/connection.screen'
-import Discover from './screens/discover.screen'
-import Profile from './screens/profile.screen'
 import Messages from './screens/messages.screen'
 import Tab from './screens/tab.screen'
 
@@ -38,192 +28,6 @@ import { UPDATE_USER_MUTATION } from './graphql/update-user.mutation'
 
 import { wsClient } from './app'
 import { registerForPushNotificationsAsync } from './notification'
-
-const WIDTH = Dimensions.get('screen').width
-const FromRight = (index, position) => {
-  const inputRange = [index - 1, index, index + 1]
-  const opacity = position.interpolate({
-    inputRange,
-    outputRange: [0.8, 1, 1]
-  })
-
-  const translateX = position.interpolate({
-    inputRange,
-    outputRange: [-WIDTH, 0, WIDTH]
-  })
-
-  return {
-    opacity,
-    transform: [{ translateX }]
-  }
-}
-
-const FromLeft = (index, position) => {
-  const inputRange = [index - 1, index, index + 1]
-  const opacity = position.interpolate({
-    inputRange,
-    outputRange: [0.5, 1, 1]
-  })
-
-  const translateX = position.interpolate({
-    inputRange,
-    outputRange: [-WIDTH, 0, WIDTH]
-  })
-
-  return {
-    opacity,
-    transform: [{ translateX }]
-  }
-}
-
-const styles = StyleSheet.create({
-  buttonContainerAbsolute: {
-    backgroundColor: 'transparent',
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 20
-  },
-  buttonContainerRight: {
-    backgroundColor: '#000',
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 20
-  },
-  buttonContainerLeft: {
-    backgroundColor: '#000',
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 20
-  },
-  button: {
-    margin: 7,
-    width: 50,
-    height: 50,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  title: {
-    fontSize: 18,
-    color: '#fff'
-  }
-})
-
-const TransitionConfiguration = () => {
-  return {
-    screenInterpolator: sceneProps => {
-      const { position, scene } = sceneProps
-      const { index, route } = scene
-      const params = route.params || {}
-      const transition = params.transition || 'FromRight'
-
-      return {
-        FromLeft: FromLeft(index, position),
-        FromRight: FromRight(index, position)
-      }[transition]
-    }
-  }
-}
-
-// tabs in main screen
-const MainScreenNavigator = StackNavigator(
-  {
-    Connection: {
-      screen: Connection,
-      navigationOptions: ({ navigation }) => {
-        return {
-          header: () => {
-            return (
-              <View style={styles.buttonContainerLeft}>
-                <View style={styles.button} />
-                <Text style={styles.title}>Connections</Text>
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={() => navigation.goBack()}
-                >
-                  <Ionicons color='#fff' name='ios-arrow-forward' size={30} />
-                </TouchableOpacity>
-              </View>
-            )
-          }
-        }
-      }
-    },
-    Discover: {
-      screen: Discover,
-      navigationOptions: ({ navigation }) => {
-        return {
-          header: () => {
-            return (
-              <View style={styles.buttonContainerAbsolute}>
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={() => navigation.navigate('Connection', {
-                    transition: 'FromRight'
-                  })}
-                >
-                  <Ionicons color='#fff' name='ios-link' size={30} />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={() =>
-                    navigation.navigate('Profile', {
-                      transition: 'FromLeft'
-                    })}
-                >
-                  <Ionicons color='#fff' name='ios-contact' size={30} />
-                </TouchableOpacity>
-              </View>
-            )
-          }
-        }
-      }
-    },
-    Profile: {
-      screen: Profile,
-      navigationOptions: ({ navigation }) => {
-        return {
-          header: () => {
-            return (
-              <View style={styles.buttonContainerRight}>
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={() => navigation.goBack()}
-                >
-                  <Ionicons color='#fff' name='ios-arrow-back' size={30} />
-                </TouchableOpacity>
-                <Text style={styles.title}>Profile</Text>
-                <View style={styles.button} />
-              </View>
-            )
-          }
-        }
-      }
-    }
-  },
-  {
-    headerMode: 'none',
-    animationEnabled: false,
-    swipeEnabled: false,
-    direction: 'leftToRight',
-    transitionConfig: TransitionConfiguration,
-    initialRouteName: 'Discover',
-  }
-)
 
 const AppNavigator = StackNavigator(
   {

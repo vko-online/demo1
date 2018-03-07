@@ -20,6 +20,7 @@ import { createBatchingNetworkInterface } from 'apollo-upload-client'
 
 import AppWithNavigationState, { navigationReducer } from './navigation'
 import auth from './reducers/auth.reducer'
+import stream from './reducers/stream.reducer'
 import { logout } from './actions/auth.actions'
 // import { FirebaseClient } from './firebase-client'
 
@@ -92,11 +93,12 @@ export const client = new ApolloClient({
   networkInterface: networkInterfaceWithSubscriptions
 })
 
-const store = createStore(
+export const store = createStore(
   combineReducers({
     apollo: client.reducer(),
     nav: navigationReducer,
-    auth
+    auth,
+    stream
   }),
   {}, // initial state
   composeWithDevTools(

@@ -1,6 +1,16 @@
 {
-  "displayName": "kitkat",
+  "displayName": "bubbles",
+  "name": "Bubbles",
+  "icon": "./bubbles.jpg",
+  "version": "1.0.0",
+  "slug": "bubbles",
   "expo": {
     "sdkVersion": "25.0.0"
+  },
+  "ios": {
+    "bundleIdentifier": "com.aftermathsoftware.bubbles"
+  },
+  "android": {
+    "package": "com.aftermathsoftware.bubbles"
   }
 }

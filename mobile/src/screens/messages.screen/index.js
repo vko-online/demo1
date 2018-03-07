@@ -2,7 +2,6 @@ import {
   ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
-  StyleSheet,
   TouchableOpacity,
   View
 } from 'react-native'
@@ -17,60 +16,18 @@ import moment from 'moment'
 import { connect } from 'react-redux'
 import { Ionicons } from '@expo/vector-icons'
 
-import { wsClient } from '../app'
+import { wsClient } from '../../app'
 
-import Message from '../components/message.component'
-import MessageInput from '../components/message-input.component'
-import { colors, metrics } from '../components/theme.component'
+import Message from '../../components/message.component'
+import MessageInput from '../../components/message-input.component'
+import { colors } from '../../components/theme.component'
 
-import { MATCH_QUERY } from '../graphql/match.query'
-import CREATE_MESSAGE_MUTATION from '../graphql/create-message.mutation'
-import { USER_QUERY } from '../graphql/user.query'
-import MESSAGE_ADDED_SUBSCRIPTION from '../graphql/message-added.subscription'
+import { MATCH_QUERY } from '../../graphql/match.query'
+import CREATE_MESSAGE_MUTATION from '../../graphql/create-message.mutation'
+import { USER_QUERY } from '../../graphql/user.query'
+import MESSAGE_ADDED_SUBSCRIPTION from '../../graphql/message-added.subscription'
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1
-  },
-  container: {
-    flex: 1,
-    alignItems: 'stretch',
-    backgroundColor: '#e5ddd5',
-    flexDirection: 'column'
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: colors.chocolate,
-    height: metrics.navbarHeight + metrics.statusBarHeight
-  },
-  button: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 24,
-    height: 24
-  },
-  loading: {
-    justifyContent: 'center'
-  },
-  titleWrapper: {
-    alignItems: 'center',
-    position: 'absolute',
-    left: 0,
-    right: 0
-  },
-  title: {
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  titleImage: {
-    marginRight: 6,
-    width: 32,
-    height: 32,
-    borderRadius: 16
-  }
-})
+import styles from './styles'
 
 class Messages extends Component {
   constructor (props) {
@@ -106,9 +63,8 @@ class Messages extends Component {
           nextProps.match.lastRead.id !== nextProps.match.messages[0].id)
       ) {
         const { match } = nextProps
-        nextProps.updateGroup({
+        nextProps.updateMatch({
           id: match.id,
-          name: match.name,
           lastRead: match.messages[0].id
         })
       }
@@ -234,16 +190,17 @@ class Messages extends Component {
     return (
       <View style={styles.root}>
         <View style={styles.header}>
-          <View style={styles.button} />
+          <TouchableOpacity style={styles.button} onPress={this.handleClose}>
+            <Ionicons name='ios-call-outline' size={30} color={colors.white} />
+          </TouchableOpacity>
           <View style={styles.button} />
           <TouchableOpacity style={styles.button} onPress={this.handleClose}>
             <Ionicons name='ios-close' size={30} color={colors.white} />
           </TouchableOpacity>
         </View>
         <KeyboardAvoidingView
-          behavior='height'
+          behavior='padding'
           contentContainerStyle={styles.container}
-          keyboardVerticalOffset={64}
           style={styles.container}
         >
           <FlatList
@@ -304,7 +261,7 @@ Messages.propTypes = {
   loadMoreEntries: PropTypes.func,
   refetch: PropTypes.func,
   subscribeToMore: PropTypes.func,
-  updateGroup: PropTypes.func
+  updateMatch: PropTypes.func
 }
 
 const ITEMS_PER_PAGE = 10
